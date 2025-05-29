@@ -6,7 +6,13 @@
 
 ## [Example Code](/example/test.py)
 
-欢迎使用 RedbookLang! 这是一个为初学者设计的简单、有趣的编程语言。下面是 RedbookLang 的基本语法和功能介绍。
+欢迎来到 RedbookLang(红薯语) 的世界！
+
+这是一个全新的编程语言，旨在让编程变得更简单、更有趣。
+
+它的语法灵感来源于 Redbook 社区的交流方式，使用了许多通俗易懂的表达方式。
+
+下面是 RedbookLang 的基本语法和功能介绍。
 
 ## 1. 基础
 

@@ -1,5 +1,7 @@
 # 📜 RedbookLang 编程语言文档
 
+> 本项目所有代码均由 AI 生成，未经人工审核。请谨慎使用。
+
 ## [Online Playground](https://redbook-lang.vercel.app/)
 
 ## [Example Code](/example/test.py)

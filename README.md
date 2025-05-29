@@ -1,5 +1,9 @@
 # 📜 RedbookLang 编程语言文档
 
+## [Online Playground](https://redbook-lang.vercel.app/)
+
+## [Example Code](/example/test.py)
+
 欢迎使用 RedbookLang! 这是一个为初学者设计的简单、有趣的编程语言。下面是 RedbookLang 的基本语法和功能介绍。
 
 ## 1. 基础

@@ -26,14 +26,41 @@
             width: 90%;
             max-width: 800px;
             margin-bottom: 20px;
+            /* Flex properties for children */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            /* This will help center block-level children */
         }
 
-        h1 {
+        h2 {
             color: #e83e8c;
             /* Redbook-like pink/magenta */
             text-align: center;
-            margin-bottom: 25px;
+            /* h2 text is centered */
+            margin-bottom: 10px;
+            /* Adjusted margin for the link below */
         }
+
+        /* New style for the documentation link */
+        .docs-link {
+            display: block;
+            /* Makes the <a> tag a block-level element */
+            text-align: center;
+            /* Centers the text within the <a> tag */
+            margin-top: 0;
+            /* Space from h2, h2 has margin-bottom already */
+            margin-bottom: 20px;
+            /* Space before the code input section */
+            font-size: 0.9em;
+            color: #6c757d;
+            text-decoration: none;
+        }
+
+        .docs-link:hover {
+            text-decoration: underline;
+        }
+
 
         label {
             display: block;
@@ -41,6 +68,13 @@
             font-weight: 600;
             color: #495057;
         }
+
+        /* Ensure label's parent div takes appropriate width if container centers everything */
+        .code-input-section {
+            width: 100%;
+            /* Make this section take full width of container */
+        }
+
 
         textarea {
             width: calc(100% - 20px);
@@ -82,6 +116,8 @@
 
         #outputContainer {
             margin-top: 20px;
+            width: 100%;
+            /* Make this section take full width of container */
         }
 
         pre {
@@ -117,9 +153,10 @@
 
 <body>
     <div class="container">
-        <h1>RedbookLang Playground 💃📚</h1>
-
-        <div>
+        <h2>RedbookLang Playground 💃📚</h2>
+        <a class="docs-link" href="https://github.com/dreamhunter2333/redbook_lang" target="_blank">查看 RedbookLang
+            语言文档</a>
+        <div class="code-input-section">
             <label for="codeInput">输入你的 RedbookLang 代码:</label>
             <textarea id="codeInput">
 # 欢迎来到 RedbookLang Playground!
@@ -141,8 +178,7 @@
 
         <button id="runButton">💅 运行代码!</button>
 
-        <div id="outputContainer">
-            <label for="outputArea">运行结果:</label>
+        <div id="outputContainer" class="code-input-section"> <label for="outputArea">运行结果:</label>
             <pre id="outputArea">点击 "运行代码!" 按钮来查看结果 ✨</pre>
         </div>
     </div>

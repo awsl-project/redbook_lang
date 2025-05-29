@@ -6,7 +6,7 @@
 
 ## [Example Code](/example/test.py)
 
-欢迎来到 RedbookLang(红薯语) 的世界！
+欢迎来到 RedbookLang(薯言) 的世界！
 
 这是一个全新的编程语言，旨在让编程变得更简单、更有趣。
 

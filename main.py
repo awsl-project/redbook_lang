@@ -33,7 +33,7 @@ def execute_redbooklang_code(code_string: str) -> Dict[str, Any]:
 
         # interpret() 方法现在应该返回 {"output": "...", "error": "..."}
         output = interpreter.interpret()
-        return {"output": output, "error": ""}
+        return output
 
     # 捕获在 Lexer 或 Parser 初始化/调用期间可能发生的错误
     # 这些错误可能在 interpreter.interpret() 被调用之前发生

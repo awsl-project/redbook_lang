@@ -4,231 +4,463 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RedbookLang Playground</title>
+    <link rel="icon"
+        href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" style="font-size:50px">💃📚</text></svg>'>
+    <title>薯言 Playground</title>
+    <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/loader.js"></script>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
             margin: 0;
-            padding: 20px;
-            background-color: #f8f9fa;
-            color: #343a40;
+            background-color: #f0f2f5;
+            /* Light gray background */
+            color: #333;
+            /* Darker default text */
             display: flex;
             flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
+            height: 100vh;
+            overflow: hidden;
         }
 
-        .container {
-            background-color: #fff;
-            padding: 25px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            width: 90%;
-            max-width: 800px;
-            margin-bottom: 20px;
-            /* Flex properties for children */
+        .top-nav {
             display: flex;
-            flex-direction: column;
+            justify-content: space-between;
             align-items: center;
-            /* This will help center block-level children */
+            padding: 5px 40px;
+            background-color: #ffffff;
+            /* White navbar */
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            /* Softer shadow for light theme */
+            width: 100%;
+            box-sizing: border-box;
+            flex-shrink: 0;
+            height: 10vh;
         }
 
-        h2 {
+        .nav-title {
             color: #e83e8c;
-            /* Redbook-like pink/magenta */
-            text-align: center;
-            /* h2 text is centered */
-            margin-bottom: 10px;
-            /* Adjusted margin for the link below */
+            /* Keep brand color */
+            margin: 0;
+            font-size: 1.8em;
         }
 
-        /* New style for the documentation link */
-        .docs-link {
-            display: block;
-            /* Makes the <a> tag a block-level element */
-            text-align: center;
-            /* Centers the text within the <a> tag */
-            margin-top: 0;
-            /* Space from h2, h2 has margin-bottom already */
-            margin-bottom: 20px;
-            /* Space before the code input section */
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .nav-docs-link {
             font-size: 0.9em;
-            color: #6c757d;
+            color: #555;
+            /* Darker gray link */
             text-decoration: none;
+            margin: 0;
         }
 
-        .docs-link:hover {
+        .nav-docs-link:hover {
             text-decoration: underline;
+            color: #e83e8c;
+            /* Brand color on hover */
         }
 
+        .main-layout-container {
+            display: flex;
+            width: 95%;
+            max-width: 1800px;
+            height: 85vh;
+            margin: 0 auto;
+            padding: 10px 0;
+            gap: 20px;
+            flex-grow: 1;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+
+        .left-panel,
+        .right-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: #ffffff;
+            /* White panels */
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.06);
+            /* Softer shadow */
+            overflow: hidden;
+        }
+
+        .right-panel {
+            position: relative;
+        }
+
+        .right-panel.hidden {
+            display: none;
+        }
 
         label {
             display: block;
             margin-bottom: 8px;
             font-weight: 600;
-            color: #495057;
+            color: #333;
+            /* Darker label text */
         }
 
-        /* Ensure label's parent div takes appropriate width if container centers everything */
-        .code-input-section {
+        .editor-controls {
+            margin-bottom: 10px;
+            flex-shrink: 0;
+        }
+
+        #editorContainer {
             width: 100%;
-            /* Make this section take full width of container */
-        }
-
-
-        textarea {
-            width: calc(100% - 20px);
-            /* Account for padding */
-            height: 250px;
-            padding: 10px;
-            border: 1px solid #ced4da;
+            border: 1px solid #d1d5da;
+            /* Lighter border */
             border-radius: 4px;
-            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
-            font-size: 14px;
-            line-height: 1.5;
-            margin-bottom: 15px;
-            resize: vertical;
+            flex-grow: 1;
+            min-height: 150px;
         }
 
-        button {
+        button#runButton {
             background-color: #e83e8c;
             color: white;
-            padding: 12px 20px;
+            padding: 8px 16px;
             border: none;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 600;
             transition: background-color 0.2s ease;
-            display: block;
-            width: 100%;
-            margin-bottom: 20px;
+            width: auto;
+            flex-shrink: 0;
         }
 
-        button:hover {
+        button#runButton:hover {
             background-color: #d63384;
         }
 
-        button:disabled {
+        button#runButton:disabled {
             background-color: #f0a9c9;
             cursor: not-allowed;
         }
 
         #outputContainer {
-            margin-top: 20px;
             width: 100%;
-            /* Make this section take full width of container */
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            min-height: 0;
         }
 
-        pre {
-            background-color: #e9ecef;
+        pre#outputArea {
+            background-color: #f8f9fa;
+            /* Very light gray for output */
+            color: #212529;
+            /* Dark text for output - default color */
             padding: 15px;
             border-radius: 4px;
-            border: 1px solid #dee2e6;
+            border: 1px solid #d1d5da;
+            /* Lighter border */
             white-space: pre-wrap;
-            /* Allow wrapping */
             word-wrap: break-word;
-            /* Break long words */
-            min-height: 100px;
             font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
             font-size: 14px;
             line-height: 1.5;
+            flex-grow: 1;
+            overflow-y: auto;
         }
 
-        .error {
-            color: #dc3545;
-            /* Bootstrap danger color */
+        /* Corrected .error style for specificity */
+        pre#outputArea.error {
+            color: #c82333;
+            /* Red for errors */
             font-weight: bold;
+            /* Ensure bold font for errors */
         }
 
         footer {
             text-align: center;
-            margin-top: auto;
-            padding: 15px;
-            font-size: 0.9em;
-            color: #6c757d;
+            padding: 5px;
+            font-size: 0.8em;
+            color: #555;
+            /* Darker gray footer text */
+            width: 100%;
+            box-sizing: border-box;
+            background-color: #f0f2f5;
+            /* Match body background */
+            flex-shrink: 0;
+            height: 5vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        footer p {
+            margin: 0;
+        }
+
+        #closeRightPanelButton {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 1.5em;
+            color: #888;
+            /* Lighter gray for close icon */
+            cursor: pointer;
+            padding: 0 5px;
+        }
+
+        #closeRightPanelButton:hover {
+            color: #333;
+            /* Darker on hover */
         }
     </style>
 </head>
 
 <body>
-    <div class="container">
-        <h2>RedbookLang Playground 💃📚</h2>
-        <a class="docs-link" href="https://github.com/awsl-project/redbook_lang" target="_blank">查看 RedbookLang
-            语言文档</a>
-        <div class="code-input-section">
-            <label for="codeInput">输入你的 RedbookLang 代码:</label>
-            <textarea id="codeInput">
-# 欢迎来到 RedbookLang Playground!
-# 在这里试试你的代码吧~
+    <nav class="top-nav">
+        <h2 class="nav-title">薯言 Playground 💃📚</h2>
+        <div class="nav-actions">
+            <a class="nav-docs-link" href="https://github.com/awsl-project/redbook_lang" target="_blank">查看薯言文档</a>
+            <button id="runButton">💅 运行代码!</button>
+        </div>
+    </nav>
 
-种草一个 "欢迎消息" 是 'Hello RedbookLang, yyds!'
-听我说, "欢迎消息"
-
-种草一个 "a" 是 10
-种草一个 "b" 是 20
-听我说, 'a + b =', "a" 加上 "b"
-
-开个新帖 叫 "乘法" 艾特 ("x", "y"):
-    绝绝子 "x" 乘以 "y"
-
-听我说, '5 * 6 =', 调用 "乘法" 用 (5, 6)
-</textarea>
+    <div class="main-layout-container">
+        <div class="left-panel">
+            <div id="editorContainer"></div>
         </div>
 
-        <button id="runButton">💅 运行代码!</button>
-
-        <div id="outputContainer" class="code-input-section"> <label for="outputArea">运行结果:</label>
-            <pre id="outputArea">点击 "运行代码!" 按钮来查看结果 ✨</pre>
+        <div class="right-panel hidden" id="rightPanelContainer">
+            <button id="closeRightPanelButton" title="关闭">&times;</button>
+            <div id="outputContainer">
+                <label for="outputArea">运行结果:</label>
+                <pre id="outputArea">点击 "运行代码!" 按钮来查看结果 ✨</pre>
+            </div>
         </div>
     </div>
+
     <footer>
         <p>注意: 此 Playground 仅供学习和测试。请勿运行不可信代码。</p>
     </footer>
 
     <script>
-        const codeInput = document.getElementById('codeInput');
-        const runButton = document.getElementById('runButton');
-        const outputArea = document.getElementById('outputArea');
+        let editor;
+        const initialCode = `
+# RedbookLang (薯言) 来了! yyds!
 
-        runButton.addEventListener('click', async () => {
-            const code = codeInput.value;
-            outputArea.textContent = '运行中... ⏳';
-            outputArea.classList.remove('error');
-            runButton.disabled = true;
+听我说, '--- 基础变量和打印 ---'
+种草一个 "我的昵称" 是 '薯条宝宝'
+种草一个 "幸运数字" 是 -7 # 定义负数
+听我说, "我的昵称", '的幸运数字是', "幸运数字"
 
-            try {
-                const response = await fetch('/run', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ code: code })
-                });
+听我说, '--- 函数定义与调用 ---'
+开个新帖 叫 "制作元气早餐" 艾特 ("主食", "饮品"):
+    绝绝子 '元气早餐已上线：' 加上 "主食" 加上 ' + ' 加上 "饮品" 加上 '，开启美好一天！☀️'
 
-                const result = await response.json();
+种草一个 "我的早餐" 是 调用 "制作元气早餐" 用 ('小面包', '燕麦拿铁')
+听我说, "我的早餐"
 
-                if (response.ok) {
-                    let displayText = "";
-                    if (result.output) {
-                        displayText += result.output;
-                    }
-                    if (result.error) {
-                        displayText += (displayText ? "\n---错误信息---\n" : "") + result.error;
-                        outputArea.classList.add('error');
-                    }
-                    outputArea.textContent = displayText || '执行完毕，但没有输出。';
-                } else {
-                    outputArea.textContent = `请求错误: ${response.status}\n${result.error || '未知后端错误'}`;
-                    outputArea.classList.add('error');
+听我说, '--- 条件语句：康康是不是 ---'
+种草一个 "笔记点赞数" 是 250
+康康是不是 "笔记点赞数" 大于 500 并且 "幸运数字" 小于 0:
+    听我说, '哇哦！笔记小爆款，而且今天幸运值拉满！'
+或者康康 "笔记点赞数" 大于 200:
+    听我说, '不错哦，笔记有人气，继续加油！' # <--- 这条会执行
+都不是呢:
+    听我说, '没关系，每篇用心分享的笔记都是好笔记！💖'
+
+康康是不是 反转魅力 ("笔记点赞数" 等于 0): # not (点赞 == 0) -> 点赞 != 0
+    听我说, '笔记已经有赞啦，不是零蛋宝宝！'
+
+听我说, '--- 循环：本宝宝坚持 ---'
+种草一个 "每日目标步数" 是 3
+种草一个 "已走步数" 是 0
+开个新帖 叫 "走一步" 艾特 ("当前步数"):
+    绝绝子 "当前步数" 加上 1
+
+本宝宝坚持 "已走步数" 小于 "每日目标步数":
+    种草一个 "已走步数" 是 调用 "走一步" 用 ("已走步数")
+
+听我说, '今日运动KPI完成，共走', "已走步数", '步!🏃‍♀️'
+
+听我说, '--- 循环：盘点清单 (支持负数和负步长) ---'
+开个新帖 叫 "分享第N个草稿" 艾特 ("草稿序号"):
+    听我说, '正在编辑第', "草稿序号", '个草稿，快要完成了！'
+
+听我说, '* 正向盘点 *'
+盘点清单 "草稿ID" (启动: 1, 目标: 4): # 草稿ID: 1, 2, 3
+    调用 "分享第N个草稿" 用 ("草稿ID")
+
+听我说, '* 反向盘点 *'
+盘点清单 "倒数日" (启动: 3, 目标: 0, 跨步: -1): # 倒数日: 3, 2, 1
+    听我说, '距离 deadline 还有:', "倒数日", '天! 冲刺！'
+
+种草一个 "我的起点" 是 -2
+种草一个 "我的终点" 是 3
+种草一个 "我的步调" 是 1
+盘点清单 "负数测试" (启动: "我的起点", 目标: "我的终点", 跨步: "我的步调"): # -2, -1, 0, 1, 2
+    听我说, '负数循环测试值:', "负数测试"
+
+听我说, '--- 布尔与逻辑 ---'
+种草一个 "今天下雨" 是 才不是
+种草一个 "周末" 是 当然啦
+康康是不是 "今天下雨" 或者 反转魅力 "周末": # false or not(true) -> false or false -> false
+    听我说, '坏天气，宅家刷剧吧！'
+都不是呢: # 这条会执行
+    听我说, '天气不错，或者就是周末，出去玩！'
+
+听我说, '--- 错误处理 ---'
+# 试试错误处理
+种草一个 "空篮子" 是 0
+# 下面这行会触发 ZeroDivisionError，如果取消注释
+# 听我说, 100 除以 "空篮子"
+听我说, '代码执行完毕，感谢使用薯言！'
+`.trim();
+
+        require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs' } });
+        require(['vs/editor/editor.main'], function () {
+            monaco.languages.register({ id: 'shuyan' });
+
+            const shuyanKeywordsCore = [
+                '种草一个', '是', '听我说', '开个新帖', '调用', '叫', '艾特', '用', '绝绝子',
+                '康康是不是', '或者康康', '都不是呢', '本宝宝坚持', '盘点清单',
+                '反转魅力'
+            ];
+            const shuyanBooleanLiterals = ['当然啦', '才不是'];
+            const shuyanOperatorsKeywords = [
+                '加上', '减去', '乘以', '除以',
+                '等于', '不等于', '小于', '小于等于', '大于', '大于等于',
+                '并且', '或者'
+            ];
+            const shuyanForParamsKeywords = ['启动:', '目标:', '跨步:'];
+
+            monaco.languages.setMonarchTokensProvider('shuyan', {
+                keywords: shuyanKeywordsCore,
+                typeKeywords: shuyanBooleanLiterals,
+                operators: shuyanOperatorsKeywords,
+                paramKeywords: shuyanForParamsKeywords,
+
+                tokenizer: {
+                    root: [
+                        [/"[^"]*"/, 'identifier.shuyan'],
+                        [/'[^']*'/, 'string.shuyan'],
+                        { include: '@whitespace' },
+                        [/#.*$/, 'comment.shuyan'],
+                        [/\d*\.\d+([eE][\-+]?\d+)?/, 'number.float.shuyan'],
+                        [/\d+([eE][\-+]?\d+)?/, 'number.shuyan'],
+                        [new RegExp(shuyanKeywordsCore.join('|')), 'keyword.shuyan'],
+                        [new RegExp(shuyanBooleanLiterals.join('|')), 'typeKeyword.shuyan'],
+                        [new RegExp(shuyanOperatorsKeywords.join('|')), 'operator.shuyan'],
+                        [/启动:|目标:|跨步:/, 'paramKeyword.shuyan'],
+                        [/[()]/, 'delimiter.parenthesis.shuyan'],
+                        [/,/, 'delimiter.comma.shuyan'],
+                        [/:/, 'delimiter.colon.shuyan'],
+                        [/-/, 'operator.symbol.shuyan']
+                    ],
+                    whitespace: [
+                        [/[ \t\r\n]+/, ''],
+                    ],
                 }
+            });
 
-            } catch (err) {
-                outputArea.textContent = '客户端错误: ' + err.message;
-                outputArea.classList.add('error');
-            } finally {
-                runButton.disabled = false;
-            }
+            monaco.editor.defineTheme('shuyanTheme', {
+                base: 'vs', // Base changed to 'vs' for light theme
+                inherit: true,
+                rules: [
+                    { token: 'keyword.shuyan', foreground: '7928A1', fontStyle: 'bold' }, /* Dark Blue/Purple */
+                    { token: 'identifier.shuyan', foreground: '333333' }, /* Dark Gray */
+                    { token: 'string.shuyan', foreground: '008000' }, /* Dark Green */
+                    { token: 'number.shuyan', foreground: '098658' }, /* Teal / Dark Cyan */
+                    { token: 'number.float.shuyan', foreground: '098658' }, /* Teal / Dark Cyan */
+                    { token: 'comment.shuyan', foreground: '808080', fontStyle: 'italic' }, /* Gray */
+                    { token: 'operator.shuyan', foreground: '445588' }, /* Darker Blue/Gray */
+                    { token: 'operator.symbol.shuyan', foreground: '445588' }, /* Darker Blue/Gray */
+                    { token: 'typeKeyword.shuyan', foreground: 'BF5B00' }, /* Dark Orange for booleans */
+                    { token: 'paramKeyword.shuyan', foreground: 'A31515', fontStyle: 'bold' }, /* Dark Red */
+                    { token: 'delimiter.parenthesis.shuyan', foreground: '666666' }, /* Medium Gray */
+                    { token: 'delimiter.comma.shuyan', foreground: '666666' }, /* Medium Gray */
+                    { token: 'delimiter.colon.shuyan', foreground: '666666' }  /* Medium Gray */
+                ],
+                colors: {
+                    'editor.foreground': '#333333', /* Dark gray text */
+                    'editor.background': '#FFFFFF', /* White editor background */
+                    'editorCursor.foreground': '#e83e8c', /* Brand pink cursor for visibility */
+                    'editor.lineHighlightBackground': '#EFEFEF', /* Very light gray for line highlight */
+                    'editorLineNumber.foreground': '#AAAAAA', /* Medium gray for line numbers */
+                    'editor.selectionBackground': '#E8D9EF', /* Light Pink/Lavender selection */
+                    'editorWidget.background': '#F3F3F3', /* Background for widgets like find/replace */
+                    'editorWidget.border': '#DCDCDC'      /* Border for editor widgets */
+                }
+            });
+
+            editor = monaco.editor.create(document.getElementById('editorContainer'), {
+                value: initialCode,
+                language: 'shuyan',
+                theme: 'shuyanTheme', // Apply the new light theme
+                automaticLayout: true,
+                fontSize: 14,
+                lineNumbers: 'on',
+                roundedSelection: false,
+                scrollBeyondLastLine: false,
+                readOnly: false,
+                minimap: { enabled: true }
+            });
+
+            const runButton = document.getElementById('runButton');
+            const outputArea = document.getElementById('outputArea');
+            const rightPanelContainer = document.getElementById('rightPanelContainer');
+            const closeRightPanelButton = document.getElementById('closeRightPanelButton');
+
+            runButton.addEventListener('click', async () => {
+                rightPanelContainer.classList.remove('hidden');
+
+                const code = editor.getValue();
+                outputArea.textContent = '运行中... ⏳';
+                outputArea.classList.remove('error'); // Remove error class at the start
+                runButton.disabled = true;
+
+                try {
+                    // Replace '/run' with your actual API endpoint if different
+                    const response = await fetch('/run', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ code: code })
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        let displayText = "";
+                        if (result.output) {
+                            displayText += result.output;
+                        }
+                        if (result.error) {
+                            displayText += (displayText ? "\n\n---💅 Oops! 错误信息来啦---\n" : "---💅 Oops! 错误信息来啦---\n") + result.error;
+                            outputArea.classList.add('error'); // Add error class if error
+                        }
+                        outputArea.textContent = displayText || '执行完毕，但好像没什么要输出的呢 🤔';
+                    } else {
+                        outputArea.textContent = `请求错误: ${response.status}\n${result.error || '糟糕，后端好像开小差了！'}`;
+                        outputArea.classList.add('error'); // Add error class if HTTP error
+                    }
+
+                } catch (err) {
+                    outputArea.textContent = '客户端出错啦: ' + err.message + '，康康网络或者控制台？';
+                    outputArea.classList.add('error'); // Add error class if client-side fetch error
+                } finally {
+                    runButton.disabled = false;
+                    outputArea.scrollTop = outputArea.scrollHeight;
+                }
+            });
+
+            closeRightPanelButton.addEventListener('click', () => {
+                rightPanelContainer.classList.add('hidden');
+            });
         });
     </script>
 </body>

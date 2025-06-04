@@ -1,0 +1,16 @@
+{
+  "name": "redbook_lang",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "rm -rf ../dist && mkdir -p ../dist/monaco-editor/min/ && cp -r ./node_modules/monaco-editor/min/vs ../dist/monaco-editor/min/vs && cp index.html ../dist/index.html"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.10.0",
+  "dependencies": {
+    "monaco-editor": "^0.52.2"
+  }
+}

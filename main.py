@@ -2,6 +2,7 @@ import os
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import Dict, Any
 
@@ -44,16 +45,6 @@ def execute_redbooklang_code(code_string: str) -> Dict[str, Any]:
         return {"output": "", "error": f"代码准备阶段发生未知错误:\n{type(e).__name__}: {e}"}
 
 
-@app.get("/", include_in_schema=False)
-async def get_index_page():
-    """提供前端 HTML 页面"""
-    current_dir = os.path.dirname(os.path.realpath(__file__))
-    index_html_path = os.path.join(current_dir, "templates", "index.html")
-    if not os.path.exists(index_html_path):
-        raise HTTPException(status_code=404, detail="index.html not found")
-    return FileResponse(index_html_path)
-
-
 @app.post("/run", summary="Run RedbookLang Code")
 async def run_code_endpoint(payload: CodePayload) -> Dict[str, Any]:
     """
@@ -75,6 +66,19 @@ async def run_code_endpoint(payload: CodePayload) -> Dict[str, Any]:
         pass  # return JSONResponse(content=execution_result, status_code=400)
 
     return execution_result
+
+
+@app.get("/", include_in_schema=False)
+async def get_index_page():
+    """提供前端 HTML 页面"""
+    current_dir = os.path.dirname(os.path.realpath(__file__))
+    index_html_path = os.path.join(current_dir, "dist", "index.html")
+    if not os.path.exists(index_html_path):
+        raise HTTPException(status_code=404, detail="index.html not found")
+    return FileResponse(index_html_path)
+
+app.mount("/", StaticFiles(directory="dist"), name="static")
+
 
 if __name__ == "__main__":
     import uvicorn

@@ -7,7 +7,7 @@
     <link rel="icon"
         href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" style="font-size:50px">💃📚</text></svg>'>
     <title>薯言 Playground</title>
-    <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/loader.js"></script>
+    <script src="/monaco-editor/min/vs/loader.js"></script>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
@@ -320,7 +320,7 @@
 听我说, '代码执行完毕，感谢使用薯言！'
 `.trim();
 
-        require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs' } });
+        require.config({ paths: { 'vs': '/monaco-editor/min/vs' } });
         require(['vs/editor/editor.main'], function () {
             monaco.languages.register({ id: 'shuyan' });
 

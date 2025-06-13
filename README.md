@@ -2,10 +2,6 @@
 
 > 本项目所有代码均由 AI 生成，未经人工审核。请谨慎使用。
 
-## [Online Playground](https://redbook-lang.vercel.app/)
-
-## [Example Code](/example/test.py)
-
 欢迎来到 RedbookLang(薯言) 的世界！
 
 这是一个全新的编程语言，旨在让编程变得更简单、更有趣。

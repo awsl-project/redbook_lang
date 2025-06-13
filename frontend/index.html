@@ -216,6 +216,135 @@
             color: #333;
             /* Darker on hover */
         }
+
+        /* 文档弹窗样式 */
+        .doc-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .doc-modal.show {
+            display: block;
+        }
+
+        .doc-modal-content {
+            background-color: #ffffff;
+            margin: 2% auto;
+            padding: 0;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 1000px;
+            height: 90%;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .doc-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 25px;
+            border-bottom: 1px solid #e0e0e0;
+            background-color: #f8f9fa;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .doc-modal-title {
+            margin: 0;
+            color: #e83e8c;
+            font-size: 1.5em;
+        }
+
+        .doc-close-button {
+            background: none;
+            border: none;
+            font-size: 28px;
+            color: #888;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+
+        .doc-close-button:hover {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+
+        .doc-modal-body {
+            padding: 25px;
+            flex-grow: 1;
+            overflow-y: auto;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .doc-loading {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .doc-error {
+            text-align: center;
+            padding: 50px;
+            color: #c82333;
+            font-size: 1.1em;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .doc-modal-content {
+                width: 95%;
+                height: 95%;
+                margin: 2.5% auto;
+            }
+
+            .doc-modal-header {
+                padding: 15px 20px;
+            }
+
+            .doc-modal-body {
+                padding: 20px;
+            }
+        }
     </style>
 </head>
 
@@ -223,7 +352,7 @@
     <nav class="top-nav">
         <h2 class="nav-title">薯言 Playground 💃📚</h2>
         <div class="nav-actions">
-            <a class="nav-docs-link" href="https://github.com/awsl-project/redbook_lang" target="_blank">查看薯言文档</a>
+            <a class="nav-docs-link" href="/doc">查看薯言文档</a>
             <button id="runButton">💅 运行代码!</button>
         </div>
     </nav>
@@ -245,6 +374,19 @@
     <footer>
         <p>注意: 此 Playground 仅供学习和测试。请勿运行不可信代码。</p>
     </footer>
+
+    <!-- 文档弹窗 -->
+    <div id="docModal" class="doc-modal">
+        <div class="doc-modal-content">
+            <div class="doc-modal-header">
+                <h3 class="doc-modal-title">薯言文档 📚</h3>
+                <button id="docCloseButton" class="doc-close-button" title="关闭">&times;</button>
+            </div>
+            <div class="doc-modal-body" id="docModalBody">
+                <div class="doc-loading">正在加载文档... ⏳</div>
+            </div>
+        </div>
+    </div>
 
     <script>
         let editor;
@@ -414,6 +556,12 @@
             const rightPanelContainer = document.getElementById('rightPanelContainer');
             const closeRightPanelButton = document.getElementById('closeRightPanelButton');
 
+            // 文档弹窗相关元素
+            const docModal = document.getElementById('docModal');
+            const docModalBody = document.getElementById('docModalBody');
+            const docCloseButton = document.getElementById('docCloseButton');
+            const docLink = document.querySelector('.nav-docs-link');
+
             runButton.addEventListener('click', async () => {
                 rightPanelContainer.classList.remove('hidden');
 
@@ -460,6 +608,59 @@
 
             closeRightPanelButton.addEventListener('click', () => {
                 rightPanelContainer.classList.add('hidden');
+            });
+
+            // 文档弹窗功能
+            async function loadDocumentation() {
+                docModal.classList.add('show');
+                docModalBody.innerHTML = '<div class="doc-loading">正在加载文档... ⏳</div>';
+
+                try {
+                    const response = await fetch('/doc');
+
+                    if (response.ok) {
+                        const docHtml = await response.text();
+                        docModalBody.innerHTML = docHtml;
+                    } else {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                } catch (error) {
+                    console.error('加载文档失败:', error);
+                    docModalBody.innerHTML = `
+                        <div class="doc-error">
+                            💔 文档加载失败<br>
+                            错误信息: ${error.message}<br>
+                            <small>请检查网络连接或联系管理员</small>
+                        </div>
+                    `;
+                }
+            }
+
+            function closeDocModal() {
+                docModal.classList.remove('show');
+            }
+
+            // 点击文档链接时阻止默认跳转并打开弹窗
+            docLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                loadDocumentation();
+            });
+
+            // 关闭按钮事件
+            docCloseButton.addEventListener('click', closeDocModal);
+
+            // 点击弹窗背景关闭
+            docModal.addEventListener('click', (e) => {
+                if (e.target === docModal) {
+                    closeDocModal();
+                }
+            });
+
+            // ESC 键关闭弹窗
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && docModal.classList.contains('show')) {
+                    closeDocModal();
+                }
             });
         });
     </script>

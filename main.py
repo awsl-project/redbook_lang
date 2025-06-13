@@ -9,6 +9,7 @@ from markdown_it import MarkdownIt
 
 from src.interpreter import Lexer, Parser, Interpreter
 
+current_dir = os.path.dirname(os.path.realpath(__file__))
 app = FastAPI(
     title="RedbookLang Playground API",
     description="API for executing RedbookLang code.",
@@ -72,7 +73,6 @@ async def run_code_endpoint(payload: CodePayload) -> Dict[str, Any]:
 @app.get("/", include_in_schema=False)
 async def get_index_page() -> FileResponse:
     """提供前端 HTML 页面"""
-    current_dir = os.path.dirname(os.path.realpath(__file__))
     index_html_path = os.path.join(current_dir, "dist", "index.html")
     if not os.path.exists(index_html_path):
         raise HTTPException(status_code=404, detail="index.html not found")
@@ -82,7 +82,6 @@ async def get_index_page() -> FileResponse:
 @app.get("/doc", include_in_schema=False)
 async def get_doc_page() -> HTMLResponse:
     """提供前端 Doc HTML 页面"""
-    current_dir = os.path.dirname(os.path.realpath(__file__))
     doc_path = os.path.join(current_dir, "README.md")
     if not os.path.exists(doc_path):
         raise HTTPException(status_code=404, detail="Doc not found")
@@ -92,7 +91,10 @@ async def get_doc_page() -> HTMLResponse:
         html_content = md.render(markdown_content)
         return HTMLResponse(content=html_content, status_code=200)
 
-app.mount("/", StaticFiles(directory="dist"), name="static")
+app.mount(
+    "/", StaticFiles(directory=os.path.join(current_dir, "dist")),
+    name="static"
+)
 
 
 if __name__ == "__main__":

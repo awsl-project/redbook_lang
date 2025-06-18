@@ -31,7 +31,7 @@ class Lexer:
             ('NEWLINE',   r'\n'),
             ('COMMENT',   r'#.*'),
             ('NUMBER',    r'\d+(\.\d*)?'),
-            ('STRING',    r"'[^']+'"),
+            ('STRING',    r"'[^']*'"),  # 支持空字符串
             ('KW_ASSIGN', r'种草一个'),
             ('KW_IS',     r'是'),
             ('KW_PRINT',  r'听我说,'),
@@ -67,6 +67,10 @@ class Lexer:
             ('OP_NOT',    r'反转魅力'),
             ('LPAREN',    r'\('),
             ('RPAREN',    r'\)'),
+            ('LBRACKET',  r'\['),
+            ('RBRACKET',  r'\]'),
+            ('LBRACE',    r'\{'),
+            ('RBRACE',    r'\}'),
             ('COLON',     r':'),
             ('COMMA',     r','),
             ('IDENTIFIER', r'"[^"]+"'),
@@ -220,6 +224,23 @@ class ForNode(ASTNode):
         self.body_statement = body_statement_node
 
 
+class IndexAccess(ASTNode):
+    def __init__(self, primary, index, bracket_token):
+        self.primary = primary
+        self.index = index
+        self.bracket_token = bracket_token
+
+
+class ListLiteral(ASTNode):
+    def __init__(self, elements):
+        self.elements = elements
+
+
+class DictLiteral(ASTNode):
+    def __init__(self, pairs):
+        self.pairs = pairs  # list of (key, value)
+
+
 class Parser:
     def __init__(self, tokens):
         self.tokens = [t for t in tokens if t.type not in (
@@ -278,7 +299,8 @@ class Parser:
     def _parse_arithmetic_add_sub(self):
         node = self._parse_arithmetic_mul_div()
         while self.current_token.type in ('OP_PLUS', 'OP_MINUS'):
-            op_token = self._eat(self.current_token.type)
+            op_token = self._eat(
+                'OP_PLUS' if self.current_token.type == 'OP_PLUS' else 'OP_MINUS')
             node = BinOp(left=node, op_token=op_token,
                          right=self._parse_arithmetic_mul_div())
         return node
@@ -286,7 +308,8 @@ class Parser:
     def _parse_arithmetic_mul_div(self):
         node = self._parse_unary_operations()
         while self.current_token.type in ('OP_MUL', 'OP_DIV'):
-            op_token = self._eat(self.current_token.type)
+            op_token = self._eat(
+                'OP_MUL' if self.current_token.type == 'OP_MUL' else 'OP_DIV')
             node = BinOp(left=node, op_token=op_token,
                          right=self._parse_unary_operations())
         return node
@@ -305,6 +328,16 @@ class Parser:
             return self._parse_primary()
 
     def _parse_primary(self):
+        node = self._parse_atom()
+        while self.current_token.type == 'LBRACKET':
+            bracket_token = self._eat('LBRACKET')
+            index_expr = self._parse_expression()
+            self._eat('RBRACKET')
+            node = IndexAccess(
+                primary=node, index=index_expr, bracket_token=bracket_token)
+        return node
+
+    def _parse_atom(self):
         token = self.current_token
         if token.type == 'NUMBER':
             self._eat('NUMBER')
@@ -323,6 +356,10 @@ class Parser:
             return Identifier(token)
         elif token.type == 'KW_CALL':
             return self._parse_func_call_expression()
+        elif token.type == 'LBRACKET':
+            return self._parse_list_literal()
+        elif token.type == 'LBRACE':
+            return self._parse_dict_literal()
         elif token.type == 'LPAREN':
             self._eat('LPAREN')
             node = self._parse_expression()
@@ -331,6 +368,34 @@ class Parser:
         else:
             self._error(
                 f"表达式中遇到意想不到的宝藏Token: {token.type} (值: {repr(token.value)})")
+
+    def _parse_list_literal(self):
+        self._eat('LBRACKET')
+        elements = []
+        if self.current_token.type != 'RBRACKET':
+            elements.append(self._parse_expression())
+            while self.current_token.type == 'COMMA':
+                self._eat('COMMA')
+                elements.append(self._parse_expression())
+        self._eat('RBRACKET')
+        return ListLiteral(elements)
+
+    def _parse_dict_literal(self):
+        self._eat('LBRACE')
+        pairs = []
+        if self.current_token.type != 'RBRACE':
+            key = self._parse_expression()
+            self._eat('COLON')
+            value = self._parse_expression()
+            pairs.append((key, value))
+            while self.current_token.type == 'COMMA':
+                self._eat('COMMA')
+                key = self._parse_expression()
+                self._eat('COLON')
+                value = self._parse_expression()
+                pairs.append((key, value))
+        self._eat('RBRACE')
+        return DictLiteral(pairs)
 
     def _parse_statement(self):
         ttype = self.current_token.type
@@ -561,20 +626,20 @@ class Interpreter:
                 return str(left_val) + str(right_val)
             else:
                 self._type_error(
-                    f"“加上”操作不支持这两种东东: {type(left_val).__name__} 和 {type(right_val).__name__}", node.op)
+                    "“加上”操作不支持这两种东东: {} 和 {}".format(type(left_val).__name__, type(right_val).__name__), node.op)
         elif op_type == 'OP_MINUS':
             if isinstance(left_val, (int, float)) and isinstance(right_val, (int, float)):
                 return left_val - right_val
             else:
-                self._type_error(f"“减去”只认数字宝宝哦", node.op)
+                self._type_error("“减去”只认数字宝宝哦", node.op)
         elif op_type == 'OP_MUL':
             if isinstance(left_val, (int, float)) and isinstance(right_val, (int, float)):
                 return left_val * right_val
             else:
-                self._type_error(f"“乘以”只认数字宝宝哦", node.op)
+                self._type_error("“乘以”只认数字宝宝哦", node.op)
         elif op_type == 'OP_DIV':
             if not isinstance(left_val, (int, float)) or not isinstance(right_val, (int, float)):
-                self._type_error(f"“除以”的左右两边都必须是数字哦", node.op)
+                self._type_error("“除以”的左右两边都必须是数字哦", node.op)
             if right_val == 0:
                 raise ZeroDivisionError("除以零？姐妹这可不兴学啊！")
             return left_val / right_val
@@ -583,20 +648,20 @@ class Interpreter:
         elif op_type == 'OP_NE':
             return left_val != right_val
         elif op_type == 'OP_LT':
-            if not (type(left_val) == type(right_val) and isinstance(left_val, (int, float, str))):
-                self._type_error(f"“小于”比较时两边类型要一样哦 (数字或字符串)", node.op)
+            if not (isinstance(left_val, (int, float, str)) and isinstance(right_val, type(left_val))):
+                self._type_error("“小于”比较时两边类型要一样哦 (数字或字符串)", node.op)
             return left_val < right_val
         elif op_type == 'OP_LE':
-            if not (type(left_val) == type(right_val) and isinstance(left_val, (int, float, str))):
-                self._type_error(f"“小于等于”比较时两边类型要一样哦", node.op)
+            if not (isinstance(left_val, (int, float, str)) and isinstance(right_val, type(left_val))):
+                self._type_error("“小于等于”比较时两边类型要一样哦", node.op)
             return left_val <= right_val
         elif op_type == 'OP_GT':
-            if not (type(left_val) == type(right_val) and isinstance(left_val, (int, float, str))):
-                self._type_error(f"“大于”比较时两边类型要一样哦", node.op)
+            if not (isinstance(left_val, (int, float, str)) and isinstance(right_val, type(left_val))):
+                self._type_error("“大于”比较时两边类型要一样哦", node.op)
             return left_val > right_val
         elif op_type == 'OP_GE':
-            if not (type(left_val) == type(right_val) and isinstance(left_val, (int, float, str))):
-                self._type_error(f"“大于等于”比较时两边类型要一样哦", node.op)
+            if not (isinstance(left_val, (int, float, str)) and isinstance(right_val, type(left_val))):
+                self._type_error("“大于等于”比较时两边类型要一样哦", node.op)
             return left_val >= right_val
         else:
             self._generic_visit(node, scope)
@@ -726,6 +791,40 @@ class Interpreter:
 
         return None
 
+    def _visit_IndexAccess(self, node, scope):
+        primary_val = self._visit(node.primary, scope)
+        index_val = self._visit(node.index, scope)
+
+        if isinstance(primary_val, (list, str)):
+            if not isinstance(index_val, int):
+                self._type_error(
+                    f"{type(primary_val).__name__}的索引必须是整数哦", node.bracket_token)
+            try:
+                return primary_val[index_val]
+            except IndexError:
+                raise IndexError(
+                    f"{type(primary_val).__name__}索引出错了，是不是超出范围了呀？索引: {index_val} (在行 {node.bracket_token.line} 列 {node.bracket_token.column})")
+        elif isinstance(primary_val, dict):
+            try:
+                return primary_val[index_val]
+            except KeyError:
+                raise KeyError(
+                    f"字典里找不到这个键哦: {repr(index_val)} (在行 {node.bracket_token.line} 列 {node.bracket_token.column})")
+        else:
+            self._type_error(
+                f"这个东东不支持用[]来取值哦: {type(primary_val).__name__}", node.bracket_token)
+
+    def _visit_ListLiteral(self, node, scope):
+        return [self._visit(elem, scope) for elem in node.elements]
+
+    def _visit_DictLiteral(self, node, scope):
+        result = {}
+        for key_node, value_node in node.pairs:
+            key = self._visit(key_node, scope)
+            value = self._visit(value_node, scope)
+            result[key] = value
+        return result
+
     def interpret(self, code_string_to_run=None):
         self.output_buffer = StringIO()
 
@@ -744,7 +843,7 @@ class Interpreter:
                 "output": self.output_buffer.getvalue(),
                 "error": f"程序运行下头了！\n原因: '绝绝子' (返回)语句可能在非函数内部的顶层使用了: {e.value}"
             }
-        except (SyntaxError, TypeError, NameError, ZeroDivisionError, ValueError, RuntimeError) as e:
+        except (SyntaxError, TypeError, NameError, ZeroDivisionError, ValueError, RuntimeError, IndexError, KeyError) as e:
             return {"output": self.output_buffer.getvalue(),
                     "error": f"程序运行下头了！\n原因({type(e).__name__}): {e}"}
         except Exception as e:
